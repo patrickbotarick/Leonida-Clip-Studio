@@ -1,0 +1,33 @@
+name: Windows installation and tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: x64
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install and build from locked dependencies
+        shell: powershell
+        run: ./scripts/configurar.ps1 -PythonExe (Get-Command python).Source -DownloadFFmpeg
+      - name: Verify installed Python dependencies
+        run: ./.venv/Scripts/python.exe -m pip check
+      - name: Frontend dependency audit
+        run: npm audit --prefix frontend --audit-level=high
+      - name: Tests (native ASR remains opt-in; no model download)
+        run: ./.venv/Scripts/python.exe -X utf8 -m pytest -q --junitxml=.local/ci-tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-test-results
+          path: .local/ci-tests.xml
+          if-no-files-found: ignore
+          retention-days: 14

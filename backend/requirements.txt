@@ -1,0 +1,8 @@
+fastapi==0.164.0
+uvicorn==0.54.0
+python-multipart==0.0.34
+faster-whisper==1.2.1
+# PyAV 19 removeu metadata_errors de av.open, usado pelo Faster Whisper 1.2.1.
+av==16.1.0
+httpx==0.28.1
+numpy==2.5.5
